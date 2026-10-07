@@ -48,7 +48,7 @@
                   <message>Maven 3.9.x is required (4.x is not supported).</message>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>[21,22)</version>
+                  <version>[21,26)</version>
                   <message>Java 21 is required.</message>
                 </requireJavaVersion>
               </rules>
