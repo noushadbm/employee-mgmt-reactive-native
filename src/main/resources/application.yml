@@ -1,0 +1,17 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: employee-service
+  r2dbc:
+    url: r2dbc:h2:mem:///employeesdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+  main:
+    lazy-initialization: false
+management:
+  endpoints.web.exposure.include: health,info
+  endpoint.health.probes.enabled: true
