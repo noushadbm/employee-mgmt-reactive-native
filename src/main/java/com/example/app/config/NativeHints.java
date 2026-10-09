@@ -17,6 +17,7 @@ public class NativeHints {
         @Override
         public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
             hints.resources().registerPattern("schema.sql");
+            hints.resources().registerPattern("schema-oracle.sql");
             hints.reflection().registerType(Employee.class, MemberCategory.values());
             hints.reflection().registerType(EmployeeRequest.class, MemberCategory.values());
         }

@@ -4,12 +4,23 @@ spring:
   application:
     name: employee-service
   r2dbc:
-    url: r2dbc:h2:mem:///employeesdb;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
+    # Oracle Autonomous DB via wallet.
+    # TNS alias must exist in $TNS_ADMIN/tnsnames.ora (e.g. mytestdb_low, mytestdb_medium, mytestdb_high).
+    # Unzip wallet zip to ./wallet (or set TNS_ADMIN to its location).
+    url: r2dbc:oracle://?oracle.r2dbc.descriptor=${ORACLE_TNS_ALIAS:mytestdb_low}&oracle.net.tns_admin=${TNS_ADMIN:./wallet}&oracle.net.wallet_location=${TNS_ADMIN:./wallet}
+    username: ${ORACLE_USERNAME}
+    password: ${ORACLE_PASSWORD}
+    pool:
+      enabled: true
+      initial-size: 2
+      max-size: 10
+      max-idle-time: 30m
+      max-life-time: 60m
   sql:
     init:
-      mode: always
+      mode: never
+      schema-locations: classpath:schema-oracle.sql
+      continue-on-error: true
   main:
     lazy-initialization: false
 management:
