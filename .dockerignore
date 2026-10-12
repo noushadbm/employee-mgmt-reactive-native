@@ -1,0 +1,11 @@
+target/
+!target/employee-service-*.jar
+.idea/
+.vscode/
+.git/
+.github/
+wallet/
+*.zip
+Wallet_*.zip
+.env
+Dockerfile.jvm

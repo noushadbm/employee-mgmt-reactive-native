@@ -103,6 +103,37 @@ All errors share one format:
 ./mvnw -PnativeTest test    # run tests as a native image (needs GraalVM, lots of RAM)
 ```
 
+## Deploy to Cloud Run (native image + Oracle wallet zip)
+
+Wallet handling: the image contains **no wallet**. At startup `docker-entrypoint.sh`
+unzip `$WALLET_ZIP` (default `/mnt/wallet/Wallet_mytestdb.zip`) into `$TNS_ADMIN`
+(default `/app/wallet`), patches `sqlnet.ora`/`ojdbc.properties` placeholders, then
+execs the service. `src/main/resources/application.yml` already reads
+`${TNS_ADMIN}` / `${ORACLE_TNS_ALIAS}`.
+
+One-command deploy (builds native via Cloud Build, mounts wallet from GCS):
+```bash
+PROJECT_ID=my-proj REGION=me-central1 ./deploy-cloudrun.sh
+```
+What it does: creates Artifact Registry repo + private GCS bucket, uploads
+`Wallet_mytestdb.zip` (or re-zips `./wallet`), ensures `ORACLE_USERNAME` /
+`ORACLE_PASSWORD` secrets, builds the native image with `cloudbuild.yaml`
+(`E2_HIGHCPU_8`, native link needs 8 GB+), and deploys with
+`--add-volume type=cloud-storage,mount-path=/mnt/wallet` plus
+`TNS_ADMIN=/app/wallet, WALLET_ZIP=/mnt/wallet/Wallet_mytestdb.zip`.
+
+Fast JVM iteration instead (no native compile):
+```bash
+./mvnw -B -DskipTests package
+docker build -f Dockerfile.jvm -t employee-service:jvm .
+docker run -p 8080:8080 -e ORACLE_USERNAME=admin -e ORACLE_PASSWORD=secret \
+  -v $PWD/Wallet_mytestdb.zip:/mnt/wallet/Wallet_mytestdb.zip:ro employee-service:jvm
+```
+
+Native caveat: `oracle-r2dbc:1.2.0` pulls `ojdbc11:21.9`, whose GraalVM
+reachability metadata is partial. If the Cloud Build native link fails on Oracle
+reflection, upgrade `ojdbc11`/`oraclepki`/`osdt_*` to 23.x and rebuild.
+
 ## Troubleshooting
 - **Data disappears on restart**: H2 is in-memory by design.
 - **Native build runs out of memory**: give it 8 GB or more, or build with Docker/buildpacks on a bigger machine.
